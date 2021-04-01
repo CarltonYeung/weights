@@ -20,7 +20,8 @@ def verify(weight_map):
 
 def verify_jumps_by(weights, jump):
     for i in range(len(weights) - 1):
-        assert weights[i+1] <= weights[i] + jump, (weights[i], weights[i+1])
+        if not weights[i+1] <= weights[i] + jump:
+            print(f'Jump is larger than desired ({jump}): {weights[i]} -> {weights[i+1]}')
 
 
 def make_combinations(weight_pairs):
@@ -59,15 +60,14 @@ def make_total_weight_map(weight_pairs):
         weight_map[total_weight] = deduped_combos 
 
     for total_weight in sorted(weight_map.keys()):
-        print(f'{total_weight}:')
-        for combo in weight_map[total_weight]:
-            print(f'    {combo}')
+        formatting = '{:<10}' + ' '.join(['{:<25}' for _ in weight_map[total_weight]])
+        print(formatting.format(total_weight, *[str(combo) for combo in weight_map[total_weight]]))
 
     return weight_map
 
 
 def main():
-    weight_pairs = [10, 25, 35, 45]
+    weight_pairs = [10, 10, 25, 35, 45]
     #weight_pairs = [1.25, 2.5, 5, 10, 10, 25, 35, 45]
 
     weight_map = make_total_weight_map(weight_pairs)
