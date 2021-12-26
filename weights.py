@@ -1,8 +1,13 @@
 #!/usr/bin/python3
-from pprint import pprint
+import argparse
 import itertools
+import math
+
+from pprint import pprint
+
 
 BARBELL_IN_LBS = 45
+LB_PER_KG = 2.205
 
 
 def calculate_total_weight(weight_per_side):
@@ -32,7 +37,7 @@ def make_combinations(weight_pairs):
     return combos
 
 
-def make_total_weight_map(weight_pairs):
+def make_total_weight_map(weight_pairs, weight_in_lbs):
     combos = make_combinations(weight_pairs)
 
     weight_tuples = list(map(lambda plates: (plates, sum(plates)), combos))
@@ -59,18 +64,31 @@ def make_total_weight_map(weight_pairs):
 
         weight_map[total_weight] = deduped_combos 
 
+    cols = max([len(combos) for combos in weight_map.values()])
     for total_weight in sorted(weight_map.keys()):
-        formatting = '{:<10}' + ' '.join(['{:<25}' for _ in weight_map[total_weight]])
-        print(formatting.format(total_weight, *[str(combo) for combo in weight_map[total_weight]]))
+        if not weight_in_lbs or (total_weight in weight_in_lbs):
+            formatting = '{:<10}' + '{:<30}'*cols + '{:<10}'
+
+            combos = [str(combo) for combo in weight_map[total_weight]]
+            combos = (combos + ['']*cols)[:cols]
+            print(formatting.format(total_weight, *combos, math.floor(total_weight / LB_PER_KG)))
+            print()
 
     return weight_map
 
 
-def main():
-    weight_pairs = [10, 10, 25, 35, 45]
-    #weight_pairs = [1.25, 2.5, 5, 10, 10, 25, 35, 45]
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('weight_in_lbs', nargs='*', default=None, type=int)
+    args = parser.parse_args()
+    return args
 
-    weight_map = make_total_weight_map(weight_pairs)
+
+def main():
+    args = parse_args()
+    weight_pairs = [2.5, 5, 10, 10, 25, 35, 45]
+
+    weight_map = make_total_weight_map(weight_pairs, args.weight_in_lbs)
 
     verify(weight_map)
     verify_jumps_by(sorted(list(weight_map.keys())), 5)
